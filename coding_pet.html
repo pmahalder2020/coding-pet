@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MAGI SYSTEM — PILOT SYNC MONITOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050e06;
+  --bg2:#040c05;
+  --panel:#071209;
+  --orange:#ff6600;
+  --orange2:#ff8c00;
+  --amber:#ffb300;
+  --cyan:#00e5cc;
+  --red:#cc1100;
+  --red2:#ff2200;
+  --green-line:#00c844;
+  --text-o:#ff7700;
+  --text-c:#00e5cc;
+  --muted:#2a5c2a;
+  --muted2:#1a3a1a;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Share Tech Mono',monospace;
+  background:var(--bg);
+  color:var(--text-o);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.12) 3px,rgba(0,0,0,0.12) 4px);
+  pointer-events:none;
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:9998;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,0.6) 100%);
+  pointer-events:none;
+}
+.bg-circuits{
+  position:fixed;inset:0;z-index:0;
+  background-image:
+    linear-gradient(var(--green-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--green-line) 1px,transparent 1px);
+  background-size:48px 48px;
+  opacity:0.05;
+}
+.wrapper{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:1.5rem 1.5rem 4rem}
+.main-grid{display:grid;grid-template-columns:340px 1fr;gap:12px;align-items:start}
+.col-left{display:flex;flex-direction:column;gap:12px;position:sticky;top:1.5rem}
+.col-right{display:flex;flex-direction:column;gap:12px}
+@media(max-width:780px){.main-grid{grid-template-columns:1fr}.col-left{position:static}}
+
+/* HEADER */
+.app-header{text-align:center;margin-bottom:1.25rem;animation:fadeUp .4s ease both}
+.header-bar{
+  background:var(--panel);border:2px solid var(--orange);border-radius:4px 4px 0 0;
+  padding:.6rem 1rem;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 0 16px rgba(255,102,0,.25),inset 0 0 20px rgba(255,102,0,.05);
+}
+.header-title{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;color:var(--orange);text-shadow:0 0 10px var(--orange);letter-spacing:.12em}
+.header-sub{font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase}
+.header-status{font-size:9px;color:var(--cyan);letter-spacing:.1em;text-shadow:0 0 6px var(--cyan);display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.status-dot{display:inline-block;width:6px;height:6px;background:var(--cyan);border-radius:50%;margin-right:4px;box-shadow:0 0 5px var(--cyan);animation:blink 1.4s infinite}
+.header-bottom{background:var(--red);height:3px;box-shadow:0 0 10px var(--red2)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* CARDS */
+.card{
+  background:var(--panel);border:1.5px solid var(--orange);border-radius:4px;
+  margin-bottom:10px;position:relative;animation:fadeUp .4s ease both;
+  box-shadow:0 0 12px rgba(255,102,0,.12),inset 0 0 30px rgba(255,102,0,.03);
+}
+.card-label{
+  position:absolute;top:-1px;left:12px;
+  background:var(--orange);color:#000;
+  font-size:8px;font-weight:700;padding:1px 8px;
+  letter-spacing:.15em;text-transform:uppercase;font-family:'Orbitron',monospace;
+}
+.card-label.cyan{background:var(--cyan);color:#000}
+.card-inner{padding:1.25rem}
+
+/* PET STRIP */
+.pet-strip{
+  background:linear-gradient(180deg,#0a1a0a 0%,#050e06 100%);
+  border-bottom:1.5px solid var(--orange);
+  padding:1rem 1.25rem .75rem;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.strip-designation{font-size:9px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:3px}
+.strip-name{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:var(--orange);text-shadow:0 0 10px var(--orange);letter-spacing:.08em}
+.strip-badge{display:inline-block;border:1.5px solid var(--orange);border-radius:3px;padding:3px 10px;font-size:9px;color:var(--orange);letter-spacing:.12em;text-transform:uppercase;box-shadow:0 0 8px rgba(255,102,0,.3);font-family:'Orbitron',monospace}
+.strip-stage-num{font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);letter-spacing:.1em;margin-top:4px}
+
+/* PET ARENA */
+.pet-arena{
+  display:flex;flex-direction:column;align-items:center;
+  padding:1.5rem 1rem 1rem;position:relative;
+  background:linear-gradient(180deg,#040c05 0%,#050e06 100%);
+}
+.pet-arena::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,204,.1),transparent);pointer-events:none}
+.pet-arena::after{content:'';position:absolute;top:0;bottom:0;left:50%;width:1px;background:linear-gradient(180deg,transparent,rgba(0,229,204,.1),transparent);pointer-events:none}
+#pet-svg{width:200px;height:200px;position:relative;z-index:2}
+
+/* COLOR PICKER */
+.color-row{display:flex;align-items:center;gap:7px;margin-top:10px;flex-wrap:wrap;justify-content:center;z-index:2;position:relative}
+.color-lbl{font-size:8px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.swatch{width:18px;height:18px;border:1.5px solid #333;cursor:pointer;border-radius:2px;transition:transform .1s,box-shadow .1s}
+.swatch:hover{transform:scale(1.2)}
+.swatch.active{border-color:#fff;box-shadow:0 0 8px currentColor;transform:scale(1.15)}
+
+.sys-msg{
+  margin-top:12px;background:#000;border:1.5px solid var(--orange);border-radius:3px;
+  padding:7px 14px;font-size:11px;color:var(--text-o);text-align:center;max-width:340px;
+  letter-spacing:.04em;box-shadow:inset 0 0 12px rgba(255,102,0,.08);z-index:2;position:relative;
+}
+.sys-msg::before{content:'> ';color:var(--muted)}
+
+/* SYNC BAR */
+.sync-wrap{padding:0 1.25rem 1rem;background:#040c05;border-bottom:1.5px solid rgba(255,102,0,.2)}
+.sync-meta{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:5px;letter-spacing:.1em;padding-top:.75rem}
+.sync-meta span:last-child{color:var(--orange);text-shadow:0 0 5px var(--orange)}
+.sync-track{height:14px;background:#000;border:1.5px solid var(--orange);position:relative;overflow:hidden}
+.sync-fill{height:100%;background:repeating-linear-gradient(90deg,var(--orange) 0,var(--orange) 5px,transparent 5px,transparent 9px);transition:width .7s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 12px var(--orange)}
+.sync-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 6px #fff;animation:pb 1s ease-in-out infinite}
+@keyframes pb{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:.75rem 1.25rem 1rem;background:#040c05}
+.stat{background:#000;border:1.5px solid var(--orange);padding:10px 8px;text-align:center;border-radius:3px;box-shadow:inset 0 0 10px rgba(255,102,0,.06)}
+.stat-val{font-family:'Orbitron',monospace;font-size:17px;font-weight:700;color:var(--orange);text-shadow:0 0 8px var(--orange)}
+.stat-lbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-top:3px}
+
+/* SECTION TITLE */
+.section-title{font-size:9px;color:var(--cyan);text-transform:uppercase;letter-spacing:.2em;margin-bottom:14px;display:flex;align-items:center;gap:8px;text-shadow:0 0 5px var(--cyan)}
+.section-title::before{content:'▸';color:var(--orange)}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,229,204,.4),transparent)}
+
+/* ── TIMER ── */
+.timer-presets{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px}
+.preset-btn{
+  background:#000;border:1.5px solid rgba(255,102,0,.35);
+  color:var(--muted);font-family:'Orbitron',monospace;
+  font-size:11px;font-weight:700;padding:10px 4px;
+  cursor:pointer;border-radius:3px;letter-spacing:.05em;
+  transition:all .15s;text-align:center;
+}
+.preset-btn:hover{border-color:var(--orange);color:var(--orange);box-shadow:0 0 10px rgba(255,102,0,.2)}
+.preset-btn.active{border-color:var(--orange);color:var(--orange);background:rgba(255,102,0,.1);box-shadow:0 0 14px rgba(255,102,0,.3)}
+.preset-xp{display:block;font-size:8px;color:var(--cyan);letter-spacing:.05em;margin-top:2px;font-family:'Share Tech Mono',monospace;text-shadow:0 0 4px var(--cyan)}
+.preset-btn.active .preset-xp{color:var(--cyan)}
+
+.timer-display{
+  text-align:center;margin-bottom:14px;
+  padding:16px;background:#000;border:1.5px solid var(--orange);border-radius:3px;
+  box-shadow:inset 0 0 20px rgba(255,102,0,.07);
+  position:relative;overflow:hidden;
+}
+.timer-display::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--orange),transparent);opacity:.6}
+.timer-label{font-size:8px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.timer-digits{
+  font-family:'Orbitron',monospace;font-size:42px;font-weight:900;
+  color:var(--orange);text-shadow:0 0 20px var(--orange),0 0 40px rgba(255,102,0,.4);
+  letter-spacing:.08em;line-height:1;
+}
+.timer-digits.running{animation:timerPulse 1s ease-in-out infinite}
+@keyframes timerPulse{0%,100%{text-shadow:0 0 20px var(--orange),0 0 40px rgba(255,102,0,.4)}50%{text-shadow:0 0 30px var(--orange),0 0 60px rgba(255,102,0,.6),0 0 80px rgba(255,102,0,.2)}}
+.timer-status{font-size:9px;color:var(--muted);letter-spacing:.15em;margin-top:6px;min-height:14px}
+.timer-status.active{color:var(--cyan);text-shadow:0 0 5px var(--cyan)}
+
+.timer-track{height:4px;background:#111;border:1px solid rgba(255,102,0,.2);border-radius:2px;overflow:hidden;margin-bottom:14px}
+.timer-fill{height:100%;background:var(--orange);box-shadow:0 0 8px var(--orange);transition:width .9s linear;border-radius:2px}
+
+.timer-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{
+  display:block;width:100%;background:#000;color:var(--orange);border:1.5px solid var(--orange);border-radius:3px;
+  padding:10px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Orbitron',monospace;
+  letter-spacing:.15em;text-transform:uppercase;text-shadow:0 0 6px var(--orange);
+  box-shadow:0 0 12px rgba(255,102,0,.15),inset 0 0 12px rgba(255,102,0,.05);transition:all .15s;
+  position:relative;overflow:hidden;
+}
+.btn:hover{background:rgba(255,102,0,.1);box-shadow:0 0 20px rgba(255,102,0,.35)}
+.btn:active{transform:scale(.98)}
+.btn.danger{border-color:rgba(204,17,0,.4);color:#662200;text-shadow:none;box-shadow:none}
+.btn.danger:hover{border-color:var(--red2);color:var(--red2);text-shadow:0 0 6px var(--red2);box-shadow:0 0 10px rgba(255,34,0,.2)}
+.btn.full{grid-column:1/-1}
+.btn.cyan-btn{border-color:var(--cyan);color:var(--cyan);text-shadow:0 0 6px var(--cyan);box-shadow:0 0 12px rgba(0,229,204,.1)}
+.btn.cyan-btn:hover{background:rgba(0,229,204,.08);box-shadow:0 0 20px rgba(0,229,204,.25)}
+
+/* TASKS */
+.tasks-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.task-chip{background:#000;border:1.5px solid rgba(255,102,0,.25);border-radius:3px;padding:9px 10px;display:flex;align-items:center;gap:7px;cursor:pointer;font-size:9px;color:var(--muted);transition:all .15s;letter-spacing:.06em;text-transform:uppercase}
+.task-chip:hover{border-color:rgba(255,102,0,.6);color:var(--text-o)}
+.task-chip.done{border-color:var(--orange);color:var(--orange);background:rgba(255,102,0,.07);text-shadow:0 0 4px var(--orange)}
+.task-dot{width:7px;height:7px;border:1.5px solid rgba(255,102,0,.3);flex-shrink:0;transform:rotate(45deg);transition:all .15s}
+.task-chip.done .task-dot{background:var(--orange);border-color:var(--orange);box-shadow:0 0 5px var(--orange)}
+.task-xp{font-size:9px;color:var(--cyan);margin-left:auto;font-family:'Orbitron',monospace;text-shadow:0 0 4px var(--cyan)}
+
+/* HISTORY */
+.hist-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,102,0,.12)}
+.hist-item:last-child{border-bottom:none}
+.hist-label{font-size:11px;color:var(--text-o)}
+.hist-time{font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:.06em}
+.hist-xp{font-family:'Orbitron',monospace;font-size:11px;color:var(--cyan);text-shadow:0 0 5px var(--cyan)}
+.hist-empty{font-size:10px;color:var(--muted);letter-spacing:.1em}
+
+/* CALENDAR */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-month{font-family:'Orbitron',monospace;font-size:11px;color:var(--cyan);text-shadow:0 0 6px var(--cyan);letter-spacing:.12em}
+.cal-arrow{background:#000;border:1.5px solid rgba(0,229,204,.3);color:var(--muted);width:26px;height:26px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;border-radius:2px;transition:all .15s}
+.cal-arrow:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 6px rgba(0,229,204,.3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-dow{font-size:8px;color:var(--muted);text-align:center;padding-bottom:5px;letter-spacing:.05em;text-transform:uppercase}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:9px;color:#1a3a1a;background:#000;border:1px solid #0a150a;position:relative;transition:all .15s}
+.cal-day.empty{background:transparent;border-color:transparent}
+.cal-day.coded{background:rgba(255,102,0,.1);border-color:rgba(255,102,0,.5);color:var(--orange);text-shadow:0 0 4px var(--orange)}
+.cal-day.coded::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:3px;height:3px;background:var(--orange);box-shadow:0 0 4px var(--orange)}
+.cal-day.today{border-color:var(--cyan);color:var(--cyan);text-shadow:0 0 5px var(--cyan)}
+.cal-day.coded.today{background:rgba(0,229,204,.08);border-color:var(--cyan);color:#fff}
+.cal-legend{display:flex;gap:14px;margin-top:8px;justify-content:flex-end}
+.cal-legend-item{display:flex;align-items:center;gap:5px;font-size:8px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.cal-legend-dot{width:7px;height:7px}
+
+/* STREAK PANEL */
+.streak-panel{
+  display:flex;gap:12px;margin-bottom:16px;
+  background:#000;border:1.5px solid var(--orange);border-radius:3px;
+  padding:12px;box-shadow:inset 0 0 16px rgba(255,102,0,.06);
+}
+.streak-counter{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:64px;border-right:1px solid rgba(255,102,0,.25);padding-right:12px;
+}
+.streak-num{
+  font-family:'Orbitron',monospace;font-size:36px;font-weight:900;
+  color:var(--orange);text-shadow:0 0 16px var(--orange),0 0 32px rgba(255,102,0,.3);
+  line-height:1;
+}
+.streak-unit{font-size:8px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-top:3px}
+.streak-right{flex:1;display:flex;flex-direction:column;gap:8px}
+.streak-bar-wrap{}
+.streak-bar-label{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.streak-bar-label span:last-child{color:var(--cyan);text-shadow:0 0 4px var(--cyan)}
+.streak-bar-track{height:8px;background:#0a0a0a;border:1px solid rgba(255,102,0,.2);border-radius:1px;overflow:hidden}
+.streak-bar-fill{height:100%;background:repeating-linear-gradient(90deg,var(--orange) 0,var(--orange) 4px,transparent 4px,transparent 7px);transition:width .6s ease;box-shadow:0 0 8px var(--orange)}
+/* tally marks row */
+.tally-row{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.tally-group{display:flex;align-items:center;gap:2px;margin-right:4px}
+.tally-mark{width:2px;height:14px;background:var(--orange);border-radius:1px;box-shadow:0 0 4px var(--orange);opacity:.85}
+.tally-slash{width:16px;height:2px;background:var(--orange);border-radius:1px;transform:rotate(-70deg) translateY(-6px);box-shadow:0 0 4px var(--orange);margin-left:-4px;opacity:.85}
+.tally-label{font-size:8px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+
+/* RESET */
+.reset-btn{background:#000;border:1.5px solid #1a0005;color:#330010;width:100%;padding:10px;font-size:9px;cursor:pointer;font-family:'Share Tech Mono',monospace;letter-spacing:.1em;text-transform:uppercase;border-radius:3px;transition:all .15s}
+.reset-btn:hover{border-color:#cc1100;color:#ff2200;text-shadow:0 0 6px #ff2200;box-shadow:0 0 10px rgba(204,17,0,.2)}
+
+/* TOAST */
+#toast{
+  position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-100px);
+  background:#000;border:1.5px solid var(--orange);color:var(--orange);padding:9px 24px;
+  font-size:11px;font-family:'Orbitron',monospace;text-shadow:0 0 8px var(--orange);
+  box-shadow:0 0 20px rgba(255,102,0,.4);transition:transform .45s cubic-bezier(.34,1.56,.64,1);
+  z-index:9997;pointer-events:none;letter-spacing:.12em;text-transform:uppercase;border-radius:3px;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+.nerv-footer{text-align:center;font-size:8px;color:var(--muted2);letter-spacing:.25em;text-transform:uppercase;margin-top:1.5rem}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* session complete flash */
+@keyframes completeFlash{0%,100%{box-shadow:0 0 12px rgba(255,102,0,.12)}50%{box-shadow:0 0 40px rgba(255,102,0,.6)}}
+.card.flash{animation:completeFlash .4s ease 3}
+</style>
+</head>
+<body>
+<div class="bg-circuits"></div>
+<div id="toast">SYNC COMPLETE</div>
+
+<div class="wrapper">
+
+  <div class="app-header">
+    <div class="header-bar">
+      <div>
+        <div class="header-title">MAGI SYSTEM</div>
+        <div class="header-sub">Pilot Sync Monitor · NERV HQ Tokyo-3</div>
+      </div>
+      <div class="header-status">
+        <div><span class="status-dot"></span>CASPAR ONLINE</div>
+        <div><span class="status-dot"></span>MELCHIOR ONLINE</div>
+        <div><span class="status-dot"></span>BALTHASAR ONLINE</div>
+      </div>
+    </div>
+    <div class="header-bottom"></div>
+  </div>
+
+  <div class="main-grid">
+    <!-- LEFT COLUMN: EVA status card -->
+    <div class="col-left">
+
+  <!-- EVA STATUS -->
+  <div class="card" id="eva-card" style="animation-delay:.0s">
+    <div class="card-label">EVA STATUS</div>
+    <div style="height:10px"></div>
+    <div class="pet-strip">
+      <div>
+        <div class="strip-designation">Unit Designation</div>
+        <div class="strip-name" id="stage-name">EVA-00</div>
+      </div>
+      <div style="text-align:right">
+        <div class="strip-badge" id="stage-badge">PROTO TYPE</div>
+        <div class="strip-stage-num" id="stage-num">STAGE 1 / 6</div>
+      </div>
+    </div>
+    <div class="pet-arena">
+      <svg id="pet-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="color-row" id="color-picker"></div>
+      <div class="sys-msg" id="pet-quote">Awaiting pilot sync data...</div>
+    </div>
+    <div class="sync-wrap">
+      <div class="sync-meta"><span>SYNCHRO-RATE</span><span id="xp-label">0 / 100 XP</span></div>
+      <div class="sync-track"><div class="sync-fill" id="xp-fill" style="width:0%"></div></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val" id="stat-level">01</div><div class="stat-lbl">Unit Level</div></div>
+      <div class="stat"><div class="stat-val" id="stat-hours">0.0h</div><div class="stat-lbl">Active Time</div></div>
+      <div class="stat"><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Day Streak</div></div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="card" style="animation-delay:.22s">
+    <div class="card-label cyan">ACTIVITY LOG</div>
+    <div class="card-inner" style="margin-top:8px">
+      <div class="section-title">Session History</div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- DANGER -->
+  <div class="card" style="animation-delay:.26s">
+    <div class="card-label" style="background:#cc1100;color:#fff">SYSTEM OVERRIDE</div>
+    <div class="card-inner" style="margin-top:8px">
+      <button class="reset-btn" onclick="resetPet()">⚠ ABORT — RESET ALL PILOT SYNC DATA</button>
+    </div>
+  </div>
+
+    </div><!-- /col-left -->
+
+    <!-- RIGHT COLUMN: controls -->
+    <div class="col-right">
+
+  <!-- SYNC TIMER -->
+  <div class="card" style="animation-delay:.06s">
+    <div class="card-label">SYNC SESSION</div>
+    <div class="card-inner" style="margin-top:8px">
+      <div class="section-title">Select Duration</div>
+      <div class="timer-presets">
+        <div class="preset-btn" onclick="selectPreset(10,this)">10m<span class="preset-xp">+10 XP</span></div>
+        <div class="preset-btn" onclick="selectPreset(15,this)">15m<span class="preset-xp">+18 XP</span></div>
+        <div class="preset-btn active" onclick="selectPreset(30,this)">30m<span class="preset-xp">+30 XP</span></div>
+        <div class="preset-btn" onclick="selectPreset(60,this)">60m<span class="preset-xp">+50 XP</span></div>
+        <div class="preset-btn" onclick="selectPreset(90,this)">90m<span class="preset-xp">+75 XP</span></div>
+      </div>
+      <div class="timer-display">
+        <div class="timer-label">TIME REMAINING</div>
+        <div class="timer-digits" id="timer-digits">30:00</div>
+        <div class="timer-status" id="timer-status">COMPLETE TO EARN +30 XP</div>
+      </div>
+      <div class="timer-track"><div class="timer-fill" id="timer-fill" style="width:0%"></div></div>
+      <div class="timer-controls">
+        <button class="btn" id="start-btn" onclick="startTimer()">▶ START SYNC</button>
+        <button class="btn danger" id="stop-btn" onclick="stopTimer()">■ ABORT</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MISSION OBJECTIVES -->
+  <div class="card" style="animation-delay:.12s">
+    <div class="card-label">OPERATIONS</div>
+    <div class="card-inner" style="margin-top:8px">
+      <div class="section-title">Mission Objectives</div>
+      <div class="tasks-grid" id="tasks-grid"></div>
+      <button class="btn full cyan-btn" onclick="submitTasks()">▶ SUBMIT MISSION REPORT</button>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="card" style="animation-delay:.18s">
+    <div class="card-label cyan">DEPLOYMENT LOG</div>
+    <div class="card-inner" style="margin-top:8px">
+      <div class="section-title">Streak Counter</div>
+      <div class="streak-panel">
+        <div class="streak-counter">
+          <div class="streak-num" id="streak-big">0</div>
+          <div class="streak-unit">Day Streak</div>
+        </div>
+        <div class="streak-right">
+          <div class="streak-bar-wrap">
+            <div class="streak-bar-label"><span>Progress to next milestone</span><span id="streak-milestone-label">0 / 7</span></div>
+            <div class="streak-bar-track"><div class="streak-bar-fill" id="streak-bar-fill" style="width:0%"></div></div>
+          </div>
+          <div class="tally-label">DEPLOYMENT TALLY</div>
+          <div class="tally-row" id="tally-row"></div>
+        </div>
+      </div>
+      <div class="section-title">Deployment Calendar</div>
+      <div class="cal-nav">
+        <button class="cal-arrow" onclick="changeMonth(-1)">&#8592;</button>
+        <div class="cal-month" id="cal-month-label"></div>
+        <button class="cal-arrow" onclick="changeMonth(1)">&#8594;</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#000;border:1px solid #1a3a1a"></div>Off Duty</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(255,102,0,.15);border:1px solid rgba(255,102,0,.5)"></div>Deployed</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="border:1px solid var(--cyan)"></div>Today</div>
+      </div>
+    </div>
+  </div>
+
+    </div><!-- /col-right -->
+  </div><!-- /main-grid -->
+
+  <div class="nerv-footer" style="margin-top:1.5rem">NERV · GOD'S IN HIS HEAVEN, ALL'S RIGHT WITH THE WORLD</div>
+</div>
+
+<script>
+/* ── DATA ── */
+const TASKS=[
+  {id:'algo',   label:'Algorithm Solved',xp:20},
+  {id:'bug',    label:'Bug Neutralised', xp:12},
+  {id:'feature',label:'Feature Deployed',xp:18},
+  {id:'review', label:'Code Reviewed',   xp:10},
+  {id:'test',   label:'Tests Written',   xp:15},
+  {id:'learn',  label:'Intel Acquired',  xp:14},
+  {id:'problem',label:'Practice Problem',xp:16},
+  {id:'doc',    label:'Docs Filed',      xp:9},
+];
+const STAGES=[
+  {min:0,   max:100,  name:'EVA-00',label:'PROTO TYPE', mood:'pod',     num:'STAGE 1 / 6'},
+  {min:100, max:250,  name:'EVA-01',label:'TEST TYPE',  mood:'hatch',   num:'STAGE 2 / 6'},
+  {min:250, max:500,  name:'EVA-02',label:'PROD TYPE',  mood:'mech',    num:'STAGE 3 / 6'},
+  {min:500, max:900,  name:'EVA-03',label:'BERSERK',    mood:'warrior', num:'STAGE 4 / 6'},
+  {min:900, max:1500, name:'EVA-04',label:'S² ENGINE',  mood:'giant',   num:'STAGE 5 / 6'},
+  {min:1500,max:99999,name:'ADAM',  label:'ANGEL CORE', mood:'deity',   num:'STAGE 6 / 6'},
+];
+const QUOTES={
+  pod:    ['Unit sealed. Awaiting activation.','LCL pressure nominal. Stand by.','Pattern Blue — unconfirmed.'],
+  hatch:  ['Hatch opening. Sync initiated.','Pilot response detected.','AT Field — trace readings.'],
+  mech:   ['Combat systems online.','Unit responsive. Weapons hot.','Synchro rate holding at 80%.'],
+  warrior:['BERSERK! Cannot halt the unit!','AT Field maximum output!','Unit acting on its own will.'],
+  giant:  ['S² Engine active. Limitless.','Synchro rate exceeding 400%.','Third Impact threshold reached.'],
+  deity:  ['I am become Adam.','All souls returned to origin.','Congratulations, Pilot.'],
+};
+const COLORS=[
+  {id:'purple',fill:'#1a0033',stroke:'#cc44ff',glow:'#cc44ff',label:'Unit-01'},
+  {id:'red',   fill:'#200005',stroke:'#ff2200',glow:'#ff2200',label:'Unit-02'},
+  {id:'blue',  fill:'#001a33',stroke:'#0099ff',glow:'#0099ff',label:'Unit-00'},
+  {id:'orange',fill:'#1a0800',stroke:'#ff6600',glow:'#ff6600',label:'Unit-03'},
+  {id:'white', fill:'#111',   stroke:'#cccccc',glow:'#ffffff',label:'Mass Prod'},
+  {id:'teal',  fill:'#001a1a',stroke:'#00e5cc',glow:'#00e5cc',label:'Unit-04'},
+];
+
+/* ── STATE ── */
+let state, tasksDone={};
+let timerInterval=null, timerTotal=0, timerRemaining=0, timerSelected=30;
+
+function loadState(){
+  try{return JSON.parse(localStorage.getItem('magi_sync_v2')||'null')||freshState();}
+  catch{return freshState();}
+}
+function freshState(){return{xp:0,totalMins:0,streak:0,lastDay:'',sessions:[],codedDays:{},colorId:'purple'};}
+function saveState(){try{localStorage.setItem('magi_sync_v2',JSON.stringify(state));}catch{}}
+function getStage(xp){return STAGES.find(s=>xp>=s.min&&xp<s.max)||STAGES[STAGES.length-1];}
+function getColor(){return COLORS.find(c=>c.id===state.colorId)||COLORS[0];}
+
+/* ── COLOR PICKER ── */
+function renderColorPicker(){
+  document.getElementById('color-picker').innerHTML=
+    `<span class="color-lbl">Unit:</span>`+
+    COLORS.map(c=>`<div class="swatch${state.colorId===c.id?' active':''}"
+      style="background:${c.fill};border-color:${c.stroke};color:${c.glow};box-shadow:${state.colorId===c.id?`0 0 8px ${c.glow}`:'none'}"
+      title="${c.label}" onclick="setColor('${c.id}')"></div>`).join('');
+}
+function setColor(id){state.colorId=id;saveState();renderColorPicker();drawPet(getStage(state.xp).mood);}
+
+/* ── TIMER ── */
+const XP_MAP={10:10, 15:18, 30:30, 60:50, 90:75};
+
+function selectPreset(mins, el){
+  if(timerInterval) return;
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  timerSelected=mins;
+  timerRemaining=mins*60;
+  timerTotal=mins*60;
+  updateTimerDisplay();
+  const xp=XP_MAP[mins]||Math.round(mins*0.6);
+  document.getElementById('timer-status').textContent=`COMPLETE TO EARN +${xp} XP`;
+  document.getElementById('timer-status').classList.remove('active');
+  document.getElementById('timer-fill').style.width='0%';
+}
+
+function startTimer(){
+  if(timerInterval){
+    // pause
+    clearInterval(timerInterval);
+    timerInterval=null;
+    document.getElementById('start-btn').textContent='▶ RESUME SYNC';
+    document.getElementById('timer-digits').classList.remove('running');
+    document.getElementById('timer-status').textContent='PAUSED';
+    document.getElementById('timer-status').classList.remove('active');
+    return;
+  }
+  if(timerRemaining<=0){
+    timerRemaining=timerSelected*60;
+    timerTotal=timerSelected*60;
+  }
+  document.getElementById('start-btn').textContent='⏸ PAUSE';
+  document.getElementById('timer-digits').classList.add('running');
+  document.getElementById('timer-status').textContent='SYNC IN PROGRESS...';
+  document.getElementById('timer-status').classList.add('active');
+
+  timerInterval=setInterval(()=>{
+    timerRemaining--;
+    updateTimerDisplay();
+    const pct=((timerTotal-timerRemaining)/timerTotal)*100;
+    document.getElementById('timer-fill').style.width=pct+'%';
+    if(timerRemaining<=0){
+      clearInterval(timerInterval);
+      timerInterval=null;
+      timerComplete();
+    }
+  },1000);
+}
+
+function stopTimer(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+  timerRemaining=timerSelected*60;
+  timerTotal=timerSelected*60;
+  updateTimerDisplay();
+  document.getElementById('start-btn').textContent='▶ START SYNC';
+  document.getElementById('timer-digits').classList.remove('running');
+  document.getElementById('timer-status').textContent='ABORTED';
+  document.getElementById('timer-status').classList.remove('active');
+  document.getElementById('timer-fill').style.width='0%';
+}
+
+function timerComplete(){
+  const mins=timerSelected;
+  const xp=XP_MAP[mins]||Math.round(mins*0.6);
+  state.totalMins+=mins;
+  document.getElementById('start-btn').textContent='▶ START SYNC';
+  document.getElementById('timer-digits').classList.remove('running');
+  document.getElementById('timer-status').textContent=`SYNC COMPLETE — +${xp} XP AWARDED`;
+  document.getElementById('timer-status').classList.add('active');
+  document.getElementById('timer-fill').style.width='100%';
+  const card=document.getElementById('eva-card');
+  card.classList.add('flash');
+  setTimeout(()=>card.classList.remove('flash'),1400);
+  addXP(xp,`Sync session: ${mins} min`,xp);
+  showToast(`SYNC COMPLETE · +${xp} XP`);
+}
+
+function updateTimerDisplay(){
+  const m=Math.floor(timerRemaining/60);
+  const s=timerRemaining%60;
+  document.getElementById('timer-digits').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+/* ── XP / TASKS ── */
+function submitTasks(){
+  const done=TASKS.filter(t=>tasksDone[t.id]);
+  if(!done.length){showToast('SELECT MISSION OBJECTIVES');return;}
+  const xp=done.reduce((a,t)=>a+t.xp,0);
+  const label=done.length===1?done[0].label:`${done.length} objectives cleared`;
+  addXP(xp,label,xp);
+  tasksDone={};renderTasks();
+}
+function addXP(amount,label,xp){
+  const prev=getStage(state.xp);
+  state.xp+=amount;
+  updateStreak();
+  state.sessions.unshift({label,xp,t:Date.now()});
+  if(state.sessions.length>30)state.sessions.pop();
+  saveState();
+  const cur=getStage(state.xp);
+  if(cur!==prev){showToast(`UNIT EVOLVED: ${cur.name}`);}
+  render();
+}
+function updateStreak(){
+  const today=new Date().toDateString();
+  if(!state.codedDays)state.codedDays={};
+  state.codedDays[today]=true;
+  if(state.lastDay===today)return;
+  const yesterday=new Date(Date.now()-86400000).toDateString();
+  state.streak=state.lastDay===yesterday?state.streak+1:1;
+  state.lastDay=today;
+}
+function resetPet(){
+  if(!confirm('ABORT SEQUENCE: Reset all pilot sync data?'))return;
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+  // clear all possible storage keys
+  try{
+    localStorage.removeItem('magi_sync_v2');
+    localStorage.removeItem('magi_sync_v1');
+    localStorage.removeItem('coding_pet_v2');
+    localStorage.removeItem('coding_pet');
+  }catch{}
+  state=freshState();
+  saveState();
+  tasksDone={};
+  timerRemaining=timerSelected*60;
+  timerTotal=timerSelected*60;
+  updateTimerDisplay();
+  document.getElementById('start-btn').textContent='▶ START SYNC';
+  document.getElementById('timer-digits').classList.remove('running');
+  document.getElementById('timer-fill').style.width='0%';
+  document.getElementById('timer-status').textContent='SELECT DURATION AND START';
+  document.getElementById('timer-status').classList.remove('active');
+  renderColorPicker();
+  renderTasks();
+  render();
+  renderCalendar();
+  showToast('ALL DATA WIPED — UNIT RESET');
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+function renderTasks(){
+  document.getElementById('tasks-grid').innerHTML=TASKS.map(t=>`
+    <div class="task-chip${tasksDone[t.id]?' done':''}" onclick="toggleTask('${t.id}')">
+      <div class="task-dot"></div><span>${t.label}</span>
+      <span class="task-xp">+${t.xp}</span>
+    </div>`).join('');
+}
+function toggleTask(id){tasksDone[id]=!tasksDone[id];renderTasks();}
+
+/* ── RENDER ── */
+function render(){
+  const stage=getStage(state.xp);
+  const idx=STAGES.indexOf(stage);
+  const next=STAGES[idx+1];
+  const inS=state.xp-stage.min;
+  const need=(next?next.min:stage.max)-stage.min;
+  const pct=Math.min(100,Math.round((inS/need)*100));
+  document.getElementById('stage-name').textContent=stage.name;
+  document.getElementById('stage-badge').textContent=stage.label;
+  document.getElementById('stage-num').textContent=stage.num;
+  document.getElementById('xp-fill').style.width=pct+'%';
+  document.getElementById('xp-label').textContent=next?`${state.xp} / ${next.min} XP`:`${state.xp} XP — FINAL`;
+  document.getElementById('stat-level').textContent=String(idx+1).padStart(2,'0');
+  document.getElementById('stat-hours').textContent=(Math.round(state.totalMins/60*10)/10)+'h';
+  document.getElementById('stat-streak').textContent=state.streak;
+  const qs=QUOTES[stage.mood]||QUOTES.pod;
+  document.getElementById('pet-quote').textContent=qs[Math.floor(Math.random()*qs.length)];
+  drawPet(stage.mood);renderHistory();renderCalendar();
+}
+
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  if(!state.sessions.length){el.innerHTML='<div class="hist-empty">NO ACTIVITY RECORDED</div>';return;}
+  el.innerHTML=state.sessions.slice(0,10).map(s=>{
+    const d=new Date(s.t);
+    const time=d.toLocaleDateString('en-IN',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    return`<div class="hist-item">
+      <div><div class="hist-label">${s.label}</div><div class="hist-time">${time}</div></div>
+      <div class="hist-xp">+${s.xp}</div></div>`;
+  }).join('');
+}
+
+/* ── DRAW MECH ── */
+function drawPet(mood){
+  const svg=document.getElementById('pet-svg');
+  const {fill:f,stroke:s,glow:g}=getColor();
+
+  const gd=`<defs>
+    <filter id="gf"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gf2"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gf3"><feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>`;
+
+  const pulse=`<animateTransform attributeName="transform" type="scale" values="1;1.02;1" dur="3s" repeatCount="indefinite" additive="sum"/>`;
+  const eyeFlicker=`<animate attributeName="opacity" values="1;0.6;1;0.8;1" dur="2.5s" repeatCount="indefinite"/>`;
+
+  // helper: eye glow
+  function eye(cx,cy,rx=5,ry=3){
+    return `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${s}" filter="url(#gf)">${eyeFlicker}</ellipse>
+            <ellipse cx="${cx}" cy="${cy}" rx="${Math.round(rx*.5)}" ry="${Math.round(ry*.5)}" fill="#fff" opacity=".7"/>`;
+  }
+
+  const mechs={
+
+    // STAGE 1: sealed pod + 3 escort ships orbiting
+    pod:`${gd}
+      <g>
+        <!-- orbit path rings (decorative) -->
+        <ellipse cx="100" cy="108" rx="72" ry="72" fill="none" stroke="${s}" stroke-width=".5" stroke-dasharray="3 5" opacity=".18"/>
+        <ellipse cx="100" cy="108" rx="55" ry="55" fill="none" stroke="${s}" stroke-width=".4" stroke-dasharray="2 6" opacity=".12"/>
+
+        <!-- ESCORT SHIP 1 — orbits full circle, starts top-right, 6s -->
+        <g>
+          <animateTransform attributeName="transform" type="rotate"
+            from="0 100 108" to="360 100 108" dur="6s" repeatCount="indefinite"/>
+          <!-- ship body: small angular fighter -->
+          <g transform="translate(163,68)">
+            <animateTransform attributeName="transform" type="rotate"
+              from="0 0 0" to="-360 0 0" dur="6s" repeatCount="indefinite" additive="sum"/>
+            <polygon points="0,-7 5,4 0,2 -5,4" fill="${f}" stroke="${s}" stroke-width="1" filter="url(#gf)"/>
+            <polygon points="-5,2 -9,6 -3,4" fill="${f}" stroke="${s}" stroke-width=".8" opacity=".8"/>
+            <polygon points="5,2 9,6 3,4" fill="${f}" stroke="${s}" stroke-width=".8" opacity=".8"/>
+            <circle cx="0" cy="-2" r="2" fill="${s}" opacity=".9" filter="url(#gf)">
+              <animate attributeName="opacity" values="1;0.4;1" dur="1.2s" repeatCount="indefinite"/>
+            </circle>
+            <!-- engine trail -->
+            <line x1="0" y1="4" x2="0" y2="10" stroke="${s}" stroke-width="1.2" opacity=".5">
+              <animate attributeName="opacity" values=".5;.1;.5" dur=".6s" repeatCount="indefinite"/>
+            </line>
+          </g>
+        </g>
+
+        <!-- ESCORT SHIP 2 — orbits, offset 120°, slower, 8s -->
+        <g>
+          <animateTransform attributeName="transform" type="rotate"
+            from="120 100 108" to="480 100 108" dur="8s" repeatCount="indefinite"/>
+          <g transform="translate(155,55)">
+            <animateTransform attributeName="transform" type="rotate"
+              from="-120 0 0" to="-480 0 0" dur="8s" repeatCount="indefinite" additive="sum"/>
+            <!-- saucer-style ship -->
+            <ellipse cx="0" cy="0" rx="8" ry="4" fill="${f}" stroke="${s}" stroke-width="1" filter="url(#gf)"/>
+            <ellipse cx="0" cy="-2" rx="4" ry="2" fill="${s}" opacity=".4"/>
+            <circle cx="0" cy="0" r="1.5" fill="${s}" opacity=".9" filter="url(#gf)">
+              <animate attributeName="opacity" values=".9;.3;.9" dur="1.8s" repeatCount="indefinite"/>
+            </circle>
+            <!-- engine blips -->
+            <circle cx="-5" cy="2" r="1" fill="${s}" opacity=".6">
+              <animate attributeName="opacity" values=".6;.1;.6" dur=".9s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="5" cy="2" r="1" fill="${s}" opacity=".6">
+              <animate attributeName="opacity" values=".1;.6;.1" dur=".9s" repeatCount="indefinite"/>
+            </circle>
+          </g>
+        </g>
+
+        <!-- ESCORT SHIP 3 — orbits, offset 240°, 7s, inner orbit -->
+        <g>
+          <animateTransform attributeName="transform" type="rotate"
+            from="240 100 108" to="600 100 108" dur="7s" repeatCount="indefinite"/>
+          <g transform="translate(148,62)">
+            <animateTransform attributeName="transform" type="rotate"
+              from="-240 0 0" to="-600 0 0" dur="7s" repeatCount="indefinite" additive="sum"/>
+            <!-- dart fighter -->
+            <polygon points="0,-6 4,5 0,3 -4,5" fill="${f}" stroke="${s}" stroke-width="1" filter="url(#gf)"/>
+            <line x1="-4" y1="2" x2="-7" y2="5" stroke="${s}" stroke-width="1" opacity=".7"/>
+            <line x1="4" y1="2" x2="7" y2="5" stroke="${s}" stroke-width="1" opacity=".7"/>
+            <circle cx="0" cy="-1" r="1.5" fill="${s}" opacity=".8" filter="url(#gf)">
+              <animate attributeName="opacity" values=".8;.3;.8" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+            <line x1="0" y1="4" x2="0" y2="9" stroke="${s}" stroke-width="1" opacity=".4">
+              <animate attributeName="opacity" values=".4;.1;.4" dur=".7s" repeatCount="indefinite"/>
+            </line>
+          </g>
+        </g>
+
+        <!-- main pod body -->
+        <g>${pulse}
+          <!-- outer pod shell -->
+          <ellipse cx="100" cy="108" rx="36" ry="52" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+          <!-- seam lines -->
+          <line x1="100" y1="58" x2="100" y2="158" stroke="${s}" stroke-width=".8" opacity=".5"/>
+          <line x1="70" y1="72" x2="70" y2="145" stroke="${s}" stroke-width=".5" opacity=".3"/>
+          <line x1="130" y1="72" x2="130" y2="145" stroke="${s}" stroke-width=".5" opacity=".3"/>
+          <!-- panel rings -->
+          <ellipse cx="100" cy="80" rx="28" ry="8" fill="none" stroke="${s}" stroke-width="1" opacity=".5"/>
+          <ellipse cx="100" cy="108" rx="36" ry="10" fill="none" stroke="${s}" stroke-width="1" opacity=".4"/>
+          <ellipse cx="100" cy="135" rx="28" ry="8" fill="none" stroke="${s}" stroke-width="1" opacity=".5"/>
+          <!-- hatch -->
+          <rect x="86" y="90" width="28" height="36" rx="4" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+          <line x1="100" y1="90" x2="100" y2="126" stroke="${s}" stroke-width=".8" opacity=".6"/>
+          <line x1="86" y1="108" x2="114" y2="108" stroke="${s}" stroke-width=".8" opacity=".6"/>
+          <circle cx="89" cy="93" r="2" fill="${s}" opacity=".7"/>
+          <circle cx="111" cy="93" r="2" fill="${s}" opacity=".7"/>
+          <circle cx="89" cy="123" r="2" fill="${s}" opacity=".7"/>
+          <circle cx="111" cy="123" r="2" fill="${s}" opacity=".7"/>
+          <!-- nose -->
+          <ellipse cx="100" cy="60" rx="14" ry="6" fill="${s}" opacity=".6" filter="url(#gf)"/>
+          <!-- base -->
+          <ellipse cx="100" cy="156" rx="20" ry="5" fill="${s}" opacity=".4"/>
+          <text x="100" y="182" text-anchor="middle" font-family="Orbitron,monospace" font-size="7" fill="${s}" opacity=".5" letter-spacing="3">ENTRY PLUG</text>
+        </g>
+      </g>`,
+
+    // STAGE 2: hatch opening, torso emerging
+    hatch:`${gd}
+      <g>${pulse}
+        <!-- pod hatch open - two halves -->
+        <path d="M64,120 Q100,70 136,120 L136,160 Q100,175 64,160 Z" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- left hatch panel flying open -->
+        <path d="M64,120 Q46,90 50,60 L68,80 Q60,100 64,120Z" fill="${f}" stroke="${s}" stroke-width="1.5" opacity=".8"/>
+        <!-- right hatch panel flying open -->
+        <path d="M136,120 Q154,90 150,60 L132,80 Q140,100 136,120Z" fill="${f}" stroke="${s}" stroke-width="1.5" opacity=".8"/>
+        <!-- emerging torso -->
+        <rect x="78" y="60" width="44" height="55" rx="4" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <!-- chest plate -->
+        <polygon points="82,68 118,68 122,88 78,88" fill="${f}" stroke="${s}" stroke-width="1.2"/>
+        <!-- head -->
+        <rect x="85" y="32" width="30" height="30" rx="3" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <rect x="85" y="32" width="30" height="30" rx="3" fill="${s}" opacity=".07"/>
+        <!-- visor -->
+        <rect x="88" y="40" width="24" height="10" rx="2" fill="${s}" opacity=".9" filter="url(#gf)"/>
+        ${eyeFlicker && `<rect x="88" y="40" width="24" height="10" rx="2" fill="${s}" opacity=".9">${eyeFlicker}</rect>`}
+        <rect x="90" y="42" width="9" height="6" rx="1" fill="#fff" opacity=".5"/>
+        <rect x="101" y="42" width="9" height="6" rx="1" fill="#fff" opacity=".5"/>
+        <!-- shoulder stubs -->
+        <rect x="58" y="66" width="20" height="14" rx="3" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <rect x="122" y="66" width="20" height="14" rx="3" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <text x="100" y="192" text-anchor="middle" font-family="Orbitron,monospace" font-size="7" fill="${s}" opacity=".5" letter-spacing="3">AWAKENING</text>
+      </g>`,
+
+    // STAGE 3: full bipedal mech — EVA proportions
+    mech:`${gd}
+      <g>
+        <!-- legs -->
+        <rect x="72" y="138" width="22" height="40" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <rect x="106" y="138" width="22" height="40" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- knee guards -->
+        <rect x="70" y="152" width="26" height="10" rx="2" fill="${s}" opacity=".25" stroke="${s}" stroke-width="1"/>
+        <rect x="104" y="152" width="26" height="10" rx="2" fill="${s}" opacity=".25" stroke="${s}" stroke-width="1"/>
+        <!-- feet -->
+        <rect x="68" y="176" width="28" height="10" rx="2" fill="${f}" stroke="${s}" stroke-width="1.2"/>
+        <rect x="104" y="176" width="28" height="10" rx="2" fill="${f}" stroke="${s}" stroke-width="1.2"/>
+        <!-- pelvis -->
+        <rect x="74" y="128" width="52" height="14" rx="3" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- torso -->
+        <rect x="68" y="72" width="64" height="58" rx="4" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)">${pulse}</rect>
+        <!-- chest armour V -->
+        <polygon points="100,80 118,76 122,100 78,100 82,76" fill="${s}" opacity=".15" stroke="${s}" stroke-width="1"/>
+        <!-- core gem -->
+        <circle cx="100" cy="95" r="7" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <circle cx="100" cy="95" r="4" fill="${s}" opacity=".8" filter="url(#gf)">${eyeFlicker}</circle>
+        <circle cx="100" cy="95" r="2" fill="#fff" opacity=".7"/>
+        <!-- shoulder pads - large EVA style -->
+        <rect x="36" y="68" width="34" height="20" rx="4" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <rect x="130" y="68" width="34" height="20" rx="4" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <!-- shoulder vents -->
+        <line x1="42" y1="73" x2="42" y2="83" stroke="${s}" stroke-width="1.2" opacity=".7"/>
+        <line x1="48" y1="73" x2="48" y2="83" stroke="${s}" stroke-width="1.2" opacity=".7"/>
+        <line x1="54" y1="73" x2="54" y2="83" stroke="${s}" stroke-width="1.2" opacity=".7"/>
+        <line x1="146" y1="73" x2="146" y2="83" stroke="${s}" stroke-width="1.2" opacity=".7"/>
+        <line x1="152" y1="73" x2="152" y2="83" stroke="${s}" stroke-width="1.2" opacity=".7"/>
+        <line x1="158" y1="73" x2="158" y2="83" stroke="${s}" stroke-width="1.2" opacity=".7"/>
+        <!-- arms -->
+        <rect x="36" y="90" width="20" height="46" rx="3" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <rect x="144" y="90" width="20" height="46" rx="3" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- forearm guards -->
+        <rect x="34" y="118" width="24" height="12" rx="2" fill="${s}" opacity=".2" stroke="${s}" stroke-width="1"/>
+        <rect x="142" y="118" width="24" height="12" rx="2" fill="${s}" opacity=".2" stroke="${s}" stroke-width="1"/>
+        <!-- hands/fists -->
+        <rect x="36" y="136" width="18" height="14" rx="2" fill="${f}" stroke="${s}" stroke-width="1.2"/>
+        <rect x="146" y="136" width="18" height="14" rx="2" fill="${f}" stroke="${s}" stroke-width="1.2"/>
+        <!-- neck -->
+        <rect x="90" y="60" width="20" height="14" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- head -->
+        <rect x="76" y="26" width="48" height="36" rx="4" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <!-- head fin/crest -->
+        <polygon points="96,26 104,26 108,10 92,10" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- visor band -->
+        <rect x="80" y="36" width="40" height="14" rx="2" fill="${s}" opacity=".85" filter="url(#gf)">${eyeFlicker}</rect>
+        <rect x="82" y="38" width="16" height="10" rx="1" fill="#fff" opacity=".4"/>
+        <rect x="102" y="38" width="16" height="10" rx="1" fill="#fff" opacity=".4"/>
+        <!-- chin guard -->
+        <rect x="84" y="50" width="32" height="12" rx="2" fill="${f}" stroke="${s}" stroke-width="1.2"/>
+        <text x="100" y="198" text-anchor="middle" font-family="Orbitron,monospace" font-size="7" fill="${s}" opacity=".5" letter-spacing="3">COMBAT READY</text>
+      </g>`,
+
+    // STAGE 4: berserk — more angular, AT field rings, cracked armour detail
+    warrior:`${gd}
+      <g>
+        <!-- AT field rings -->
+        <circle cx="100" cy="100" r="90" fill="none" stroke="${s}" stroke-width=".5" opacity=".15"><animate attributeName="r" values="85;95;85" dur="2s" repeatCount="indefinite"/></circle>
+        <circle cx="100" cy="100" r="70" fill="none" stroke="${s}" stroke-width=".7" opacity=".2"><animate attributeName="r" values="65;75;65" dur="1.8s" repeatCount="indefinite"/></circle>
+        <!-- legs wide stance -->
+        <rect x="66" y="136" width="24" height="44" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5" transform="rotate(-5,78,158)"/>
+        <rect x="110" y="136" width="24" height="44" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5" transform="rotate(5,122,158)"/>
+        <!-- knee spikes -->
+        <polygon points="68,155 60,148 66,165" fill="${s}" opacity=".8"/>
+        <polygon points="132,155 140,148 134,165" fill="${s}" opacity=".8"/>
+        <!-- feet -->
+        <rect x="60" y="176" width="32" height="12" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <rect x="108" y="176" width="32" height="12" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- pelvis -->
+        <polygon points="70,128 130,128 136,140 64,140" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- torso — more angular -->
+        <polygon points="64,72 136,72 142,130 58,130" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <!-- chest V plates -->
+        <polygon points="100,78 130,74 138,106 100,100" fill="${s}" opacity=".18" stroke="${s}" stroke-width="1"/>
+        <polygon points="100,78 70,74 62,106 100,100" fill="${s}" opacity=".18" stroke="${s}" stroke-width="1"/>
+        <!-- pulsing core -->
+        <circle cx="100" cy="100" r="10" fill="${f}" stroke="${s}" stroke-width="2"/>
+        <circle cx="100" cy="100" r="6" fill="${s}" filter="url(#gf2)"><animate attributeName="r" values="5;8;5" dur=".8s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.4;1" dur=".8s" repeatCount="indefinite"/></circle>
+        <circle cx="100" cy="100" r="2.5" fill="#fff"/>
+        <!-- massive shoulders with spikes -->
+        <rect x="28" y="64" width="38" height="24" rx="4" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <polygon points="28,68 18,58 28,76" fill="${s}" opacity=".9"/>
+        <polygon points="28,72 14,64 28,80" fill="${f}" stroke="${s}" stroke-width="1"/>
+        <rect x="134" y="64" width="38" height="24" rx="4" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <polygon points="172,68 182,58 172,76" fill="${s}" opacity=".9"/>
+        <polygon points="172,72 186,64 172,80" fill="${f}" stroke="${s}" stroke-width="1"/>
+        <!-- arms stretched out -->
+        <rect x="18" y="86" width="22" height="52" rx="3" fill="${f}" stroke="${s}" stroke-width="1.5" transform="rotate(-12,29,112)"/>
+        <rect x="160" y="86" width="22" height="52" rx="3" fill="${f}" stroke="${s}" stroke-width="1.5" transform="rotate(12,171,112)"/>
+        <!-- clawed hands -->
+        <line x1="10" y1="140" x2="2" y2="130" stroke="${s}" stroke-width="2.5"/>
+        <line x1="14" y1="142" x2="8" y2="132" stroke="${s}" stroke-width="2.5"/>
+        <line x1="18" y1="143" x2="14" y2="133" stroke="${s}" stroke-width="2.5"/>
+        <line x1="190" y1="140" x2="198" y2="130" stroke="${s}" stroke-width="2.5"/>
+        <line x1="186" y1="142" x2="192" y2="132" stroke="${s}" stroke-width="2.5"/>
+        <line x1="182" y1="143" x2="186" y2="133" stroke="${s}" stroke-width="2.5"/>
+        <!-- neck -->
+        <rect x="88" y="58" width="24" height="16" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- head angular -->
+        <polygon points="78,18 122,18 130,56 70,56" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <!-- head fin pair -->
+        <polygon points="88,18 96,18 92,4" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <polygon points="104,18 112,18 108,4" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- visor glowing angry -->
+        <rect x="78" y="30" width="44" height="16" rx="2" fill="${s}" opacity=".95" filter="url(#gf2)"><animate attributeName="opacity" values="1;0.5;1;0.7;1" dur="1s" repeatCount="indefinite"/></rect>
+        <rect x="80" y="32" width="18" height="12" rx="1" fill="#fff" opacity=".5"/>
+        <rect x="102" y="32" width="18" height="12" rx="1" fill="#fff" opacity=".5"/>
+        <text x="100" y="198" text-anchor="middle" font-family="Orbitron,monospace" font-size="7" fill="${s}" filter="url(#gf)" opacity=".8" letter-spacing="3">BERSERK</text>
+      </g>`,
+
+    // STAGE 5: giant — massive Eva-scale, fills whole viewport
+    giant:`${gd}
+      <g>
+        <!-- multiple AT field rings -->
+        ${[88,74,60].map((r,i)=>`<circle cx="100" cy="96" r="${r}" fill="none" stroke="${s}" stroke-width=".6" opacity="${.1+i*.08}"><animate attributeName="r" values="${r-4};${r+4};${r-4}" dur="${2+i*.4}s" repeatCount="indefinite"/></circle>`).join('')}
+        <!-- legs -->
+        <rect x="62" y="142" width="28" height="46" rx="2" fill="${f}" stroke="${s}" stroke-width="2"/>
+        <rect x="110" y="142" width="28" height="46" rx="2" fill="${f}" stroke="${s}" stroke-width="2"/>
+        <!-- thigh armour -->
+        <rect x="58" y="128" width="36" height="18" rx="3" fill="${f}" stroke="${s}" stroke-width="1.5" filter="url(#gf)"/>
+        <rect x="106" y="128" width="36" height="18" rx="3" fill="${f}" stroke="${s}" stroke-width="1.5" filter="url(#gf)"/>
+        <!-- knee blades -->
+        <polygon points="60,160 50,148 60,170" fill="${s}" opacity=".9" filter="url(#gf)"/>
+        <polygon points="140,160 150,148 140,170" fill="${s}" opacity=".9" filter="url(#gf)"/>
+        <!-- huge feet -->
+        <rect x="55" y="184" width="38" height="13" rx="2" fill="${f}" stroke="${s}" stroke-width="2"/>
+        <rect x="107" y="184" width="38" height="13" rx="2" fill="${f}" stroke="${s}" stroke-width="2"/>
+        <!-- waist -->
+        <polygon points="60,122 140,122 148,140 52,140" fill="${f}" stroke="${s}" stroke-width="2"/>
+        <!-- torso massive -->
+        <polygon points="50,58 150,58 158,122 42,122" fill="${f}" stroke="${s}" stroke-width="2.5" filter="url(#gf)"/>
+        <!-- chest cross armour -->
+        <rect x="88" y="64" width="24" height="52" fill="${s}" opacity=".12" stroke="${s}" stroke-width=".8"/>
+        <rect x="56" y="82" width="88" height="20" fill="${s}" opacity=".12" stroke="${s}" stroke-width=".8"/>
+        <!-- large core -->
+        <circle cx="100" cy="90" r="13" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <circle cx="100" cy="90" r="8" fill="${s}" opacity=".7" filter="url(#gf2)">${eyeFlicker}</circle>
+        <circle cx="100" cy="90" r="3" fill="#fff"/>
+        <!-- giant pauldrons -->
+        <polygon points="12,50 52,56 50,84 8,78" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <polygon points="188,50 148,56 150,84 192,78" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <!-- shoulder vents -->
+        ${[18,26,34,42].map(x=>`<line x1="${x}" y1="58" x2="${x}" y2="74" stroke="${s}" stroke-width="1.5" opacity=".6"/>`).join('')}
+        ${[156,164,172,180].map(x=>`<line x1="${x}" y1="58" x2="${x}" y2="74" stroke="${s}" stroke-width="1.5" opacity=".6"/>`).join('')}
+        <!-- arms -->
+        <rect x="10" y="80" width="26" height="58" rx="3" fill="${f}" stroke="${s}" stroke-width="2"/>
+        <rect x="164" y="80" width="26" height="58" rx="3" fill="${f}" stroke="${s}" stroke-width="2"/>
+        <!-- forearms with fins -->
+        <rect x="8" y="120" width="30" height="14" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5" filter="url(#gf)"/>
+        <rect x="162" y="120" width="30" height="14" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5" filter="url(#gf)"/>
+        <!-- neck -->
+        <rect x="86" y="44" width="28" height="16" rx="2" fill="${f}" stroke="${s}" stroke-width="2"/>
+        <!-- large angular head -->
+        <polygon points="70,8 130,8 140,44 60,44" fill="${f}" stroke="${s}" stroke-width="2.5" filter="url(#gf)"/>
+        <!-- triple head fins -->
+        <polygon points="92,8 100,8 96,-6" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <polygon points="100,8 108,8 104,-6" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <polygon points="84,12 90,10 86,-2" fill="${f}" stroke="${s}" stroke-width="1" opacity=".7"/>
+        <polygon points="110,12 116,10 112,-2" fill="${f}" stroke="${s}" stroke-width="1" opacity=".7"/>
+        <!-- visor -->
+        <rect x="74" y="20" width="52" height="18" rx="2" fill="${s}" opacity=".9" filter="url(#gf2)">${eyeFlicker}</rect>
+        <rect x="76" y="22" width="22" height="14" rx="1" fill="#fff" opacity=".4"/>
+        <rect x="102" y="22" width="22" height="14" rx="1" fill="#fff" opacity=".4"/>
+        <!-- chin -->
+        <rect x="80" y="36" width="40" height="10" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <text x="100" y="200" text-anchor="middle" font-family="Orbitron,monospace" font-size="7" fill="${s}" filter="url(#gf2)" opacity=".9" letter-spacing="3">S² ENGINE</text>
+      </g>`,
+
+    // STAGE 6: ADAM / deity — transcendent form, angelic wings, cross silhouette
+    deity:`${gd}
+      <g>
+        <!-- outer glow halos -->
+        ${[95,82,70].map((r,i)=>`<circle cx="100" cy="95" r="${r}" fill="none" stroke="${s}" stroke-width="${.4+i*.2}" opacity="${.08+i*.07}" filter="url(#gf3)"><animate attributeName="r" values="${r-5};${r+5};${r-5}" dur="${3+i*.5}s" repeatCount="indefinite"/></circle>`).join('')}
+
+        <!-- CROSS / light of the soul -->
+        <rect x="96" y="20" width="8" height="160" fill="${s}" opacity=".08" filter="url(#gf3)"/>
+        <rect x="20" y="86" width="160" height="8" fill="${s}" opacity=".08" filter="url(#gf3)"/>
+
+        <!-- angelic wing left -->
+        <path d="M68,90 Q28,40 10,20 Q20,60 30,80 Q10,70 2,90 Q20,88 35,95 Q15,100 10,120 Q30,108 50,108 Q35,125 40,150 Q58,120 68,100 Z"
+          fill="${f}" stroke="${s}" stroke-width="1.5" filter="url(#gf)" opacity=".9"/>
+        <!-- wing feather lines left -->
+        <line x1="68" y1="100" x2="10" y2="20" stroke="${s}" stroke-width=".7" opacity=".4"/>
+        <line x1="65" y1="95" x2="2" y2="90" stroke="${s}" stroke-width=".7" opacity=".4"/>
+        <line x1="64" y1="104" x2="40" y2="150" stroke="${s}" stroke-width=".7" opacity=".4"/>
+
+        <!-- angelic wing right -->
+        <path d="M132,90 Q172,40 190,20 Q180,60 170,80 Q190,70 198,90 Q180,88 165,95 Q185,100 190,120 Q170,108 150,108 Q165,125 160,150 Q142,120 132,100 Z"
+          fill="${f}" stroke="${s}" stroke-width="1.5" filter="url(#gf)" opacity=".9"/>
+        <line x1="132" y1="100" x2="190" y2="20" stroke="${s}" stroke-width=".7" opacity=".4"/>
+        <line x1="135" y1="95" x2="198" y2="90" stroke="${s}" stroke-width=".7" opacity=".4"/>
+        <line x1="136" y1="104" x2="160" y2="150" stroke="${s}" stroke-width=".7" opacity=".4"/>
+
+        <!-- legs -->
+        <rect x="74" y="146" width="22" height="38" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <rect x="104" y="146" width="22" height="38" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- feet -->
+        <rect x="68" y="180" width="32" height="10" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <rect x="100" y="180" width="32" height="10" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- waist -->
+        <polygon points="68,134 132,134 138,148 62,148" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- torso -->
+        <polygon points="62,72 138,72 144,134 56,134" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf)"/>
+        <!-- chest cross -->
+        <rect x="94" y="76" width="12" height="52" fill="${s}" opacity=".2"/>
+        <rect x="68" y="94" width="64" height="12" fill="${s}" opacity=".2"/>
+        <!-- divine core -->
+        <circle cx="100" cy="100" r="14" fill="${f}" stroke="${s}" stroke-width="2" filter="url(#gf2)"/>
+        <circle cx="100" cy="100" r="9" fill="${s}" opacity=".6" filter="url(#gf3)"><animate attributeName="r" values="8;12;8" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values=".6;1;.6" dur="1.5s" repeatCount="indefinite"/></circle>
+        <circle cx="100" cy="100" r="4" fill="#fff" filter="url(#gf)"/>
+        <!-- arms raised -->
+        <rect x="40" y="74" width="22" height="50" rx="3" fill="${f}" stroke="${s}" stroke-width="1.5" transform="rotate(-25,51,99)"/>
+        <rect x="138" y="74" width="22" height="50" rx="3" fill="${f}" stroke="${s}" stroke-width="1.5" transform="rotate(25,149,99)"/>
+        <!-- neck -->
+        <rect x="88" y="58" width="24" height="16" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- head -->
+        <polygon points="72,16 128,16 136,56 64,56" fill="${f}" stroke="${s}" stroke-width="2.5" filter="url(#gf2)"/>
+        <!-- halo ring above head -->
+        <ellipse cx="100" cy="10" rx="28" ry="7" fill="none" stroke="${s}" stroke-width="1.5" filter="url(#gf2)" opacity=".8"><animate attributeName="ry" values="6;9;6" dur="2s" repeatCount="indefinite"/></ellipse>
+        <!-- head fins -->
+        <polygon points="90,16 100,16 95,2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <polygon points="100,16 110,16 105,2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <!-- visor full width divine -->
+        <rect x="76" y="28" width="48" height="20" rx="2" fill="${s}" opacity=".9" filter="url(#gf3)"><animate attributeName="opacity" values=".9;.5;.9;.7;.9" dur="2s" repeatCount="indefinite"/></rect>
+        <rect x="78" y="30" width="19" height="16" rx="1" fill="#fff" opacity=".45"/>
+        <rect x="103" y="30" width="19" height="16" rx="1" fill="#fff" opacity=".45"/>
+        <!-- chin -->
+        <rect x="82" y="46" width="36" height="12" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+        <text x="100" y="200" text-anchor="middle" font-family="Orbitron,monospace" font-size="7" fill="${s}" filter="url(#gf3)" letter-spacing="3">ADAM · FINAL</text>
+      </g>`,
+  };
+  svg.innerHTML=mechs[mood]||mechs.pod;
+}
+
+/* ── CALENDAR + STREAK ── */
+let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
+function changeMonth(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+
+function renderStreakPanel(){
+  const streak=state.streak||0;
+  document.getElementById('streak-big').textContent=streak;
+
+  // milestones: 7, 14, 21, 30, 60, 100
+  const MILESTONES=[7,14,21,30,60,100];
+  const next=MILESTONES.find(m=>m>streak)||100;
+  const prev=MILESTONES.slice().reverse().find(m=>m<=streak)||0;
+  const pct=Math.min(100,Math.round(((streak-prev)/(next-prev))*100));
+  document.getElementById('streak-milestone-label').textContent=`${streak} / ${next}`;
+  document.getElementById('streak-bar-fill').style.width=pct+'%';
+
+  // tally marks — groups of 5
+  const tallyEl=document.getElementById('tally-row');
+  if(streak===0){tallyEl.innerHTML=`<span style="font-size:9px;color:var(--muted);letter-spacing:.08em">NO DEPLOYMENTS YET</span>`;return;}
+  const full=Math.floor(streak/5);
+  const rem=streak%5;
+  let html='';
+  for(let g=0;g<full;g++){
+    html+=`<div class="tally-group">
+      <div class="tally-mark"></div><div class="tally-mark"></div>
+      <div class="tally-mark"></div><div class="tally-mark"></div>
+      <div class="tally-slash"></div>
+    </div>`;
+  }
+  if(rem>0){
+    html+=`<div class="tally-group">`;
+    for(let i=0;i<rem;i++) html+=`<div class="tally-mark"></div>`;
+    html+=`</div>`;
+  }
+  tallyEl.innerHTML=html;
+}
+
+function renderCalendar(){
+  const DAYS=['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const MONTHS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const today=new Date();
+  const codedDays=state.codedDays||{};
+  document.getElementById('cal-month-label').textContent=`${MONTHS[calMonth]} ${calYear}`;
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  let html=DAYS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<firstDay;i++)html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=new Date(calYear,calMonth,d).toDateString();
+    const isToday=today.getDate()===d&&today.getMonth()===calMonth&&today.getFullYear()===calYear;
+    const isCoded=!!codedDays[dateStr];
+    const cls=['cal-day',isCoded?'coded':'',isToday?'today':''].filter(Boolean).join(' ');
+    // tally strike inside day cell
+    const strike=isCoded?`<svg width="100%" height="100%" style="position:absolute;inset:0;pointer-events:none" viewBox="0 0 30 30"><line x1="6" y1="24" x2="24" y2="6" stroke="currentColor" stroke-width="1.5" opacity=".5"/></svg>`:'';
+    html+=`<div class="${cls}" style="position:relative">${d}${strike}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+  renderStreakPanel();
+}
+
+/* ── BOOT ── */
+state=loadState();
+if(!state.codedDays)state.codedDays={};
+if(!state.colorId)state.colorId='purple';
+timerRemaining=timerSelected*60;
+timerTotal=timerSelected*60;
+updateTimerDisplay();
+renderColorPicker();
+renderTasks();
+render();
+renderCalendar();
+</script>
+</body>
+</html>
